@@ -38,13 +38,6 @@ const Header = () => {
 
         {/* Mobile Search */}
         <div className="md:hidden mt-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="What do you want to watch?"
-              className="pl-10 bg-ocean-mid/50 border-ocean-light text-foreground placeholder:text-muted-foreground focus:ring-cyan-bright focus:border-cyan-bright"
-            />
-          </div>
         </div>
       </div>
     </header>

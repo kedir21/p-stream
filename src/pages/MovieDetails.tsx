@@ -6,13 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import MediaCarousel from "../components/MovieCarousel";
-import { useMovieDetails, useTVDetails, useTVSeasonDetails, TMDBMovie, TMDBTVShow, TVSeasonDetails } from "@/hooks/useTMDB";
+import { useMovieDetails, useTVDetails, useTVSeasonDetails, useRecommendations } from "@/hooks/useTMDB";
 
 const MediaDetails = ({ mediaType }: { mediaType: 'movie' | 'tv' }) => {
   const { id } = useParams<{ id: string }>();
   const movieDetails = useMovieDetails(Number(id));
   const tvDetails = useTVDetails(Number(id));
   const { data: media, isLoading, error } = mediaType === 'movie' ? movieDetails : tvDetails;
+  const { data: recommendations } = useRecommendations(mediaType, Number(id));
   const [showPlayer, setShowPlayer] = useState(false);
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null);
@@ -108,26 +109,24 @@ const MediaDetails = ({ mediaType }: { mediaType: 'movie' | 'tv' }) => {
     : media.episode_run_time?.[0];
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Cinematic Background */}
+    <div className="min-h-screen  text-white">
+      {/* Enhanced Cinematic Background */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
         {media.backdrop_path ? (
-          <>
+          <div className="relative w-full h-full">
             <img
               src={getImageUrl(media.backdrop_path, 'w1920')}
               alt={title}
               className="w-full h-full object-cover blur-sm opacity-20 scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-b from-black via-black/50 to-transparent" />
-          </>
+          </div>
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-cyan-900/20 to-purple-900/20" />
+          <div className="w-full h-full bg-gradient-to-br from-cyan-900/30 via-purple-900/30 to-black" />
         )}
       </div>
 
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
+      {/* Header with Glass Morphism Effect */}
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg border-b border-white/10 shadow-lg">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <Button asChild variant="ghost" size="sm" className="hover:bg-cyan-500/10">
             <Link to="/" className="flex items-center space-x-2">
@@ -152,14 +151,14 @@ const MediaDetails = ({ mediaType }: { mediaType: 'movie' | 'tv' }) => {
         <div className="container mx-auto px-4">
           {/* Title Section */}
           <div className="flex flex-col lg:flex-row gap-8 items-start mb-12">
-            {/* Premium Poster */}
-            <div className="flex-shrink-0 w-full lg:w-80">
-              <div className="relative group rounded-xl overflow-hidden shadow-2xl transform transition-all duration-300 hover:scale-105">
+            {/* Premium Poster with Parallax Effect */}
+            <div className="flex-shrink-0 w-full lg:w-80 relative group">
+              <div className="relative rounded-xl overflow-hidden shadow-2xl transform transition-all duration-500 group-hover:shadow-cyan-500/30">
                 {media.poster_path ? (
                   <img
                     src={getImageUrl(media.poster_path, 'w500')}
                     alt={title}
-                    className="w-full h-auto object-cover"
+                    className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 ) : (
                   <div className="w-full aspect-[2/3] bg-gradient-to-br from-cyan-500/10 to-purple-500/10 flex items-center justify-center">
@@ -187,31 +186,34 @@ const MediaDetails = ({ mediaType }: { mediaType: 'movie' | 'tv' }) => {
             <div className="flex-1">
               <h1 className="text-4xl lg:text-6xl font-bold text-white mb-4 drop-shadow-lg">
                 {title}
+                <span className="text-cyan-400 ml-3 text-2xl lg:text-4xl font-normal">
+                  ({releaseYear})
+                </span>
               </h1>
 
               {/* Meta Info */}
               <div className="flex flex-wrap items-center gap-2 mb-6">
-                <div className="flex items-center space-x-1 bg-black/50 px-3 py-1 rounded-full">
+                <div className="flex items-center space-x-1 bg-black/50 px-3 py-1 rounded-full border border-yellow-400/30">
                   <Star className="w-4 h-4 text-yellow-400 fill-current" />
                   <span className="font-semibold">{media.vote_average.toFixed(1)}</span>
                 </div>
                 
                 {releaseYear && (
-                  <div className="flex items-center space-x-1 bg-black/50 px-3 py-1 rounded-full">
+                  <div className="flex items-center space-x-1 bg-black/50 px-3 py-1 rounded-full border border-white/10">
                     <Calendar className="w-4 h-4" />
                     <span>{releaseYear}</span>
                   </div>
                 )}
 
                 {runtime && runtime > 0 && (
-                  <div className="flex items-center space-x-1 bg-black/50 px-3 py-1 rounded-full">
+                  <div className="flex items-center space-x-1 bg-black/50 px-3 py-1 rounded-full border border-white/10">
                     <Clock className="w-4 h-4" />
                     <span>{formatRuntime(runtime)}</span>
                   </div>
                 )}
 
                 {mediaType === 'tv' && media.number_of_seasons && (
-                  <div className="flex items-center space-x-1 bg-black/50 px-3 py-1 rounded-full">
+                  <div className="flex items-center space-x-1 bg-black/50 px-3 py-1 rounded-full border border-white/10">
                     <span>
                       {media.number_of_seasons} season
                       {typeof media.number_of_seasons === 'number' && media.number_of_seasons !== 1 ? 's' : ''}
@@ -220,7 +222,7 @@ const MediaDetails = ({ mediaType }: { mediaType: 'movie' | 'tv' }) => {
                 )}
 
                 {media.production_countries?.[0] && (
-                  <div className="flex items-center space-x-1 bg-black/50 px-3 py-1 rounded-full">
+                  <div className="flex items-center space-x-1 bg-black/50 px-3 py-1 rounded-full border border-white/10">
                     <Globe className="w-4 h-4" />
                     <span>{media.production_countries[0].name}</span>
                   </div>
@@ -232,7 +234,7 @@ const MediaDetails = ({ mediaType }: { mediaType: 'movie' | 'tv' }) => {
                 {media.genres.map((genre) => (
                   <Badge 
                     key={genre.id} 
-                    className="bg-cyan-500/10 text-cyan-500 border-cyan-500/30 hover:bg-cyan-500/20"
+                    className="bg-cyan-500/10 text-cyan-500 border-cyan-500/30 hover:bg-cyan-500/20 hover:scale-105 transition-transform"
                   >
                     {genre.name}
                   </Badge>
@@ -515,48 +517,70 @@ const MediaDetails = ({ mediaType }: { mediaType: 'movie' | 'tv' }) => {
             </div>
           )}
 
-          {/* Cast Section */}
+          {/* Enhanced Cast Section */}
           {mainCast.length > 0 && (
-            <section className="py-12">
-              <h2 className="text-2xl font-bold text-white mb-8">Cast</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-                {mainCast.map((actor) => (
-                  <div key={actor.id} className="group text-center">
-                    <div className="w-full aspect-[3/4] bg-gradient-to-br from-cyan-500/10 to-purple-500/10 rounded-xl overflow-hidden mb-3 relative">
-                      {actor.profile_path ? (
-                        <img
-                          src={getImageUrl(actor.profile_path, 'w185')}
-                          alt={actor.name}
-                          className="w-full h-full object-cover group-hover:opacity-70 transition-opacity"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <div className="w-12 h-12 bg-cyan-500/20 rounded-full" />
+            <section className="py-12 relative">
+              <div className="absolute inset-0 -z-10 " />
+              <div className="container mx-auto px-4">
+                <h2 className="text-3xl font-bold text-white mb-8 relative">
+                  <span className="relative z-10">Cast</span>
+                  <span className="absolute -bottom-1 left-0 w-20 h-1 bg-cyan-500 rounded-full"></span>
+                </h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                  {mainCast.map((actor) => (
+                    <div key={actor.id} className="group text-center relative">
+                      <div className="w-full aspect-[3/4] rounded-xl overflow-hidden mb-3 relative transform transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-cyan-500/20">
+                        {actor.profile_path ? (
+                          <img
+                            src={getImageUrl(actor.profile_path, 'w300')}
+                            alt={actor.name}
+                            className="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-80"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-cyan-500/10 to-purple-500/10">
+                            <div className="w-16 h-16 bg-cyan-500/20 rounded-full flex items-center justify-center">
+                              <span className="text-2xl font-bold text-cyan-500/50">
+                                {actor.name.charAt(0)}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                          <div className="text-center w-full">
+                            <p className="text-white text-sm font-medium">{actor.character}</p>
+                          </div>
                         </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                        <span className="text-white text-sm font-medium">{actor.character}</span>
                       </div>
+                      <h3 className="font-semibold text-white text-sm group-hover:text-cyan-400 transition-colors">
+                        {actor.name}
+                      </h3>
                     </div>
-                    <h3 className="font-semibold text-white text-sm">{actor.name}</h3>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </section>
           )}
 
-          {/* Similar Media */}
-          {media.similar?.results && media.similar.results.length > 0 && (
-            <section className="py-12">
-              <MediaCarousel
-                title={`More Like ${title}`}
-                items={media.similar.results.map(m => ({
-                  ...m,
-                  title: m.title || m.name,
-                  release_date: m.release_date || m.first_air_date
-                }))}
-                mediaType={mediaType}
-              />
+          {/* Premium Recommendations Section */}
+          {recommendations && recommendations.length > 0 && (
+            <section className="py-12 relative">
+              <div className="absolute inset-0 -z-10 " />
+              <div className="container mx-auto px-4">
+                <h2 className="text-3xl font-bold text-white mb-8 relative">
+                  <span className="relative z-10">Recommended For You</span>
+                  <span className="absolute -bottom-1 left-0 w-20 h-1 bg-cyan-500 rounded-full"></span>
+                </h2>
+                <MediaCarousel
+                  items={recommendations.map(m => ({
+                    ...m,
+                    title: m.title || m.name || 'Unknown Title',
+                    release_date: m.release_date || m.first_air_date
+                  }))}
+                  mediaType={mediaType}
+                  carouselClassName="px-0"
+                  itemClassName="px-2"
+                />
+              </div>
             </section>
           )}
         </div>

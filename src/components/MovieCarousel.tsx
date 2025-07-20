@@ -1,3 +1,4 @@
+// MediaCarousel.tsx
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MediaCard from "./MovieCard";
@@ -18,16 +19,18 @@ interface MediaItem {
 
 interface MediaCarouselProps {
   title: string;
-  items?: MediaItem[]; // Make items optional
+  items?: MediaItem[];
   viewMoreLink?: string;
   mediaType?: 'movie' | 'tv';
+  className?: string;
 }
 
 const MediaCarousel = ({ 
   title, 
-  items = [], // Provide default empty array
+  items = [], 
   viewMoreLink, 
-  mediaType 
+  mediaType,
+  className = ''
 }: MediaCarouselProps) => {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -46,7 +49,7 @@ const MediaCarousel = ({
   const scroll = (direction: 'left' | 'right') => {
     if (!scrollContainerRef.current) return;
     
-    const scrollAmount = 400;
+    const scrollAmount = 500; // Increased scroll amount
     const container = scrollContainerRef.current;
     
     if (direction === 'left') {
@@ -67,7 +70,7 @@ const MediaCarousel = ({
 
   const getMediaPoster = (posterPath?: string) => {
     if (!posterPath) return undefined;
-    return `https://image.tmdb.org/t/p/w342${posterPath}`;
+    return `https://image.tmdb.org/t/p/w500${posterPath}`; // Higher quality images
   };
 
   const getMediaYear = (releaseDate?: string, firstAirDate?: string): number => {
@@ -85,21 +88,23 @@ const MediaCarousel = ({
     return item.media_type === 'tv' ? 'TV Show' : 'Movie';
   };
 
-  // Don't render if there are no items
   if (!items || items.length === 0) {
     return null;
   }
 
   return (
-    <section className="py-12">
+    <section className={`py-8 ${className}`}>
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground">{title}</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl md:text-3xl font-bold text-white">
+            {title}
+            <span className="block w-16 h-1 bg-cyan-500 mt-2 rounded-full"></span>
+          </h2>
           {viewMoreLink && (
-            <Button asChild variant="link" className="text-cyan-bright hover:text-cyan-bright/80">
+            <Button asChild variant="ghost" className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10">
               <Link to={viewMoreLink}>
-                View more →
+                View All <ChevronRight className="w-4 h-4 ml-1" />
               </Link>
             </Button>
           )}
@@ -108,46 +113,47 @@ const MediaCarousel = ({
         {/* Carousel */}
         <div className="relative group">
           {/* Left scroll button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-ocean-deep/80 backdrop-blur-sm hover:bg-ocean-mid/80 border border-ocean-light/30 transition-all duration-300 ${
-              canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
-            }`}
-            onClick={() => scroll('left')}
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
+          {canScrollLeft && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/80 backdrop-blur-sm hover:bg-black/90 w-12 h-12 rounded-full shadow-lg border border-gray-700/50 transition-all duration-300 hover:scale-110"
+              onClick={() => scroll('left')}
+            >
+              <ChevronLeft className="w-6 h-6 text-white" />
+            </Button>
+          )}
 
           {/* Right scroll button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-ocean-deep/80 backdrop-blur-sm hover:bg-ocean-mid/80 border border-ocean-light/30 transition-all duration-300 ${
-              canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
-            }`}
-            onClick={() => scroll('right')}
-          >
-            <ChevronRight className="w-5 h-5" />
-          </Button>
+          {canScrollRight && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/80 backdrop-blur-sm hover:bg-black/90 w-12 h-12 rounded-full shadow-lg border border-gray-700/50 transition-all duration-300 hover:scale-110"
+              onClick={() => scroll('right')}
+            >
+              <ChevronRight className="w-6 h-6 text-white" />
+            </Button>
+          )}
 
           {/* Media container */}
           <div
             ref={scrollContainerRef}
-            className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+            className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-6 px-1"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {items.map((item) => (
-              <MediaCard
-                key={item.id}
-                id={item.id}
-                title={getMediaTitle(item)}
-                year={getMediaYear(item.release_date, item.first_air_date)}
-                type={getMediaType(item)}
-                rating={item.vote_average}
-                posterUrl={getMediaPoster(item.poster_path)}
-                mediaType={mediaType || item.media_type}
-              />
+              <div key={item.id} className="flex-shrink-0 first:pl-0 last:pr-0">
+                <MediaCard
+                  id={item.id}
+                  title={getMediaTitle(item)}
+                  year={getMediaYear(item.release_date, item.first_air_date)}
+                  type={getMediaType(item)}
+                  rating={item.vote_average}
+                  posterUrl={getMediaPoster(item.poster_path)}
+                  mediaType={mediaType || item.media_type}
+                />
+              </div>
             ))}
           </div>
         </div>

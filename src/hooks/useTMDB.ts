@@ -3,6 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY || '4f10ec4dbb0a90737737dc9ffd5506c3';
 
+interface RecommendationsResponse {
+  page: number;
+  results: TMDBMovieBase[];
+  total_pages: number;
+  total_results: number;
+}
 interface Genre {
   id: number;
   name: string;
@@ -250,5 +256,32 @@ export const useTVSeasonDetails = (tvId: number, seasonNumber: number, enabled =
     },
     enabled: enabled,
     staleTime: 1000 * 60 * 60 // 1 hour
+  });
+};
+// Add this hook at the end of your file, with your other hooks
+export const useRecommendations = (mediaType: 'movie' | 'tv', id: number) => {
+  return useQuery<TMDBMovieBase[]>({
+    queryKey: ['recommendations', mediaType, id],
+    queryFn: async () => {
+      const data = await fetchTMDB<RecommendationsResponse>(
+        `/${mediaType}/${id}/recommendations`
+      );
+      return data.results.map(normalizeMovieData);
+    },
+    staleTime: 1000 * 60 * 60 * 2 // 2 hours
+  });
+};
+
+export const useDiscoverMedia = (mediaType: 'movie' | 'tv', query: string) => {
+  return useQuery({
+    queryKey: ['discover', mediaType, query],
+    queryFn: async () => {
+      if (!query.trim()) return [];
+      const data = await fetchTMDB<TMDBResponse<TMDBMovieBase>>(
+        `/search/${mediaType}?query=${encodeURIComponent(query)}`
+      );
+      return data.results.map(normalizeMovieData);
+    },
+    enabled: false, // Disable automatic fetching
   });
 };
